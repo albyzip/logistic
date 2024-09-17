@@ -3,6 +3,11 @@
 return [
     'users' => 'Пользователи',
     'user' => 'Пользователь',
+    'name' => 'Имя',
+    'email' => 'E-Mail',
+    'password' => 'Пароль',
+    'role' => 'Роль',
+    'roles' => 'Роли',
     'manager' => 'Менеджер',
     'managers' => 'Менеджеры',
     'delivery' => 'Доставка',

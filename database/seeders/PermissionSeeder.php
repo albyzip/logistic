@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Models\Permission;
+use Filament\Facades\Filament;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Route;
 
 class PermissionSeeder extends Seeder
 {
@@ -13,26 +15,28 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        $crud = collect([
-            'creat',
-            'read',
-            'update',
-            'delete',
-        ]);
+        $routes = Route::getRoutes()->getRoutesByName();
 
-        $data = collect([
-            'delivery',
-            'user',
-            'user-role',
-        ]);
+        foreach ($routes as $key => $route) {
+            if (!str_starts_with($key, 'filament.admin.') || str_starts_with($key, 'filament.admin.auth')) {
+                unset($routes[$key]);
+            }
+        }
 
-        $data->each(function ($item) use($crud) : void {
-            $crud->each(function ($action) use($item) : void {
+        Permission::query()->whereNotIn('key', array_keys($routes))->delete();
+        $permissions = Permission::withTrashed()->get();
+
+        foreach ($routes as $key => $route){
+            $permission = $permissions->where('name', $key)->first();
+            if ($permission->trashed()){
+                $permission->restore();
+            } else {
                 Permission::create([
                     'guard_name' => 'admin',
-                    'name' => $item . '-' . $action,
+                    'name' => $key,
+                    'display_name' => $key
                 ]);
-            });
-        });
+            }
+        }
     }
 }
