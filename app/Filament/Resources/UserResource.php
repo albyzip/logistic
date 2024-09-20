@@ -39,6 +39,7 @@ class UserResource extends Resource
                 Forms\Components\Select::make('role')
                     ->label(self::getFieldName('role'))
                     ->options(Role::query()->get()->pluck('name', 'id'))
+                    ->relationship('roles', 'name')
                     ->required()
             ]);
     }
@@ -46,9 +47,13 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn (Builder $query) => $query->role('client', 'admin'))
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('name')
+                    ->label('User name')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('first_role_name')
+                    ->label('Role')
+                    ->sortable(),
             ])
             ->filters([
                 //
@@ -66,7 +71,7 @@ class UserResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+
         ];
     }
 
