@@ -23,8 +23,7 @@ class CityResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Toggle::make('name')
-                    ->label(self::getFieldName('name'))
+                Forms\Components\TextInput::make('name')
                     ->required(),
             ]);
     }
