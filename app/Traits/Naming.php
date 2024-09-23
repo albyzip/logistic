@@ -11,6 +11,11 @@ trait Naming
         $this->entity = lcfirst(class_basename(self::$model));
     }
 
+    public static function getTranslation(string $name): string
+    {
+        return __('mp_logistic.' . $name);
+    }
+
     public static function getFieldName(string $field): string
     {
         return __('mp_logistic.' . self::getEntityName() . ('_fields.' . $field));
