@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\DTO\DeliveryDTO;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property DeliveryDTO $data
+ */
 class Delivery extends Model
 {
     use HasFactory;
@@ -22,8 +26,24 @@ class Delivery extends Model
         'comment',
     ];
 
+    protected $casts = [
+        'data' => DeliveryDTO::class
+    ];
+
     public function cargos(): HasMany
     {
         return $this->hasMany(Cargo::class);
+    }
+
+    public function entities()
+    {
+        return $this->hasManyThrough(
+            Model::class,
+            DeliveryItem::class,
+            'delivery_id',
+            'id',
+            'id',
+            'entity_id'
+        )->morphTo();
     }
 }
