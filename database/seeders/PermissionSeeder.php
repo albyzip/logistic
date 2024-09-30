@@ -28,15 +28,22 @@ class PermissionSeeder extends Seeder
 
         foreach ($routes as $key => $route){
             $permission = $permissions->where('name', $key)->first();
+            if (!$permission){
+                $this->createPermission($key);
+                continue;
+            }
             if ($permission->trashed()){
                 $permission->restore();
-            } else {
-                Permission::create([
-                    'guard_name' => 'admin',
-                    'name' => $key,
-                    'display_name' => $key
-                ]);
             }
         }
+    }
+
+    protected function createPermission($key): void
+    {
+        Permission::create([
+            'guard_name' => 'admin',
+            'name' => $key,
+            'display_name' => $key
+        ]);
     }
 }
