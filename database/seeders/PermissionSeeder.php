@@ -23,7 +23,7 @@ class PermissionSeeder extends Seeder
             }
         }
 
-        Permission::query()->whereNotIn('key', array_keys($routes))->delete();
+        Permission::query()->whereNotIn('name', array_keys($routes))->delete();
         $permissions = Permission::withTrashed()->get();
 
         foreach ($routes as $key => $route){
