@@ -12,6 +12,7 @@ use App\Models\City;
 use App\Models\Delivery;
 use App\Models\Warehouse;
 use App\Traits\Naming;
+use Closure;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -44,58 +45,7 @@ class DeliveryResource extends Resource
                     ->label(self::getFieldName('to_warehouse_id'))
                     ->multiple()
                     ->options(Warehouse::query()->get()->pluck('name', 'id')),
-                Forms\Components\Section::make(self::getTranslation('delivery_section'))
-                    ->description(self::getTranslation('delivery_section_description'))
-                    ->schema([
-                        Forms\Components\Select::make('supply_type')
-                            ->columnSpan(12)
-                            ->label(self::getFieldName('supply_type'))
-                            ->multiple()
-                            ->options(SupplyType::forSelect())
-                            ->reactive(),
-                        DeliveryBoxFieldset::get(
-                            'Короба',
-                                [
-                                    'box_sizes_field_name' => 'box_box_sizes',
-                                    'fieldset_type' => SupplyType::BOX->name
-                                ]
-                            )
-                            ->visible(fn (callable $get) => in_array(SupplyType::BOX->name, $get('supply_type'))),
-                        DeliveryBoxFieldset::get(
-                            'Короба на палете',
-                                [
-                                    'box_sizes_field_name' => 'bon_box_sizes',
-                                    'fieldset_type' => SupplyType::BOX_ON_PALLET->name
-                                ]
-                            )
-                            ->visible(fn (callable $get) => in_array(SupplyType::BOX_ON_PALLET->name, $get('supply_type'))),
-                        PalletFieldset::get(
-                                SupplyType::getName(SupplyType::PALLET1),
-                                [
-                                    'pallet_field_name' =>'pallet1',
-                                    'fieldset_type' => SupplyType::PALLET1
-                                ]
-                            )
-                            ->visible(fn (callable $get) => in_array(SupplyType::PALLET1->name, $get('supply_type'))),
-                        PalletFieldset::get(
-                            SupplyType::getName(SupplyType::PALLET2),
-                            [
-                                'pallet_field_name' =>'pallet2',
-                                'fieldset_type' => SupplyType::PALLET2
-                            ]
-                        )
-                            ->visible(fn (callable $get) => in_array(SupplyType::PALLET2->name, $get('supply_type'))),
-                        PalletFieldset::get(
-                            SupplyType::getName(SupplyType::PALLET3),
-                            [
-                                'pallet_field_name' =>'pallet3',
-                                'fieldset_type' => SupplyType::PALLET3
-                            ]
-                        )
-                            ->visible(fn (callable $get) => in_array(SupplyType::PALLET3->name, $get('supply_type'))),
-                    ])
-                    ->visible(fn (callable $get) => $get('city_id') !== null)
-                    ->columns(12),
+                self::deliverySection(),
                 PersonalInformationFieldset::get('Персональная информация'),
                 Forms\Components\Textarea::make('comment')
                     ->label(self::getFieldName('comment'))
@@ -111,18 +61,61 @@ class DeliveryResource extends Resource
             ])->columns(12);
     }
 
+    protected static function deliverySection(): Forms\Components\Section
+    {
+        return Forms\Components\Section::make(self::getTranslation('delivery_section'))
+            ->description(self::getTranslation('delivery_section_description'))
+            ->schema([
+                Forms\Components\Select::make('supply_type')
+                    ->columnSpan(12)
+                    ->label(self::getFieldName('supply_type'))
+                    ->multiple()
+                    ->options(SupplyType::forSelect())
+                    ->reactive(),
+                DeliveryBoxFieldset::get(
+                    'Короба',
+                    [
+                        'fieldset_type' => SupplyType::BOX
+                    ]
+                )
+                    ->visible(fn (callable $get) => in_array(SupplyType::BOX->value, $get('supply_type'))),
+                DeliveryBoxFieldset::get(
+                    'Короба на палете',
+                    [
+                        'fieldset_type' => SupplyType::BOX_ON_PALLET
+                    ]
+                )
+                    ->visible(fn (callable $get) => in_array(SupplyType::BOX_ON_PALLET->value, $get('supply_type'))),
+                PalletFieldset::get(
+                    SupplyType::getName(SupplyType::PALLET1),
+                    [
+                        'fieldset_type' => SupplyType::PALLET1
+                    ]
+                )
+                    ->visible(fn (callable $get) => in_array(SupplyType::PALLET1->value, $get('supply_type'))),
+                PalletFieldset::get(
+                    SupplyType::getName(SupplyType::PALLET2),
+                    [
+                        'fieldset_type' => SupplyType::PALLET2
+                    ]
+                )
+                    ->visible(fn (callable $get) => in_array(SupplyType::PALLET2->value, $get('supply_type'))),
+                PalletFieldset::get(
+                    SupplyType::getName(SupplyType::PALLET3),
+                    [
+                        'fieldset_type' => SupplyType::PALLET3
+                    ]
+                )
+                    ->visible(fn (callable $get) => in_array(SupplyType::PALLET3->value, $get('supply_type'))),
+            ])
+            ->visible(fn (callable $get) => $get('city_id') !== null)
+            ->columns(12);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('from_warehouse_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('to_warehouse_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\IconColumn::make('get_from_address')
-                    ->boolean(),
                 Tables\Columns\TextColumn::make('unload_at')
                     ->dateTime()
                     ->sortable(),
@@ -154,7 +147,7 @@ class DeliveryResource extends Resource
     public static function getRelations(): array
     {
         return [
-            CargosRelationManager::class,
+
         ];
     }
 

@@ -4,10 +4,6 @@ namespace App\Filament\Resources\DeliveryResource\Fieldsets;
 
 use App\Enums\CityClassifier;
 use App\Enums\SupplyType;
-use App\Filament\Resources\DeliveryResource\Fieldsets\AdditionalServices\Moscow\MoscowBoxAdditionalServiceFieldSet;
-use App\Filament\Resources\DeliveryResource\Fieldsets\AdditionalServices\Moscow\MoscowBoxOnPalletAdditionalServiceFieldSet;
-use App\Filament\Resources\DeliveryResource\Fieldsets\Kazan\KazanBoxAdditionalServiceFieldSet;
-use App\Filament\Resources\DeliveryResource\Fieldsets\Kazan\KazanBoxOnPalletAdditionalServiceFieldSet;
 use App\Filament\Structures\AbstractFieldset;
 use App\Models\BoxSize;
 use App\Models\City;
@@ -17,71 +13,48 @@ use Filament\Forms\Components\Group;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-
+use App\Filament\Resources\DeliveryResource\Fieldsets\AdditionalServices\AdditionalServicesFieldSet;
 class DeliveryBoxFieldset extends AbstractFieldset
 {
     use Naming;
     public static function get(string $name = '', array $args = []): Fieldset
     {
-        if (!array_key_exists('box_sizes_field_name', $args)){
-            return Fieldset::make('NO box_sizes_field_name provided')
-                ->schema([]);
-        }
         if (!array_key_exists('fieldset_type', $args)){
             return Fieldset::make('NO fieldset_type provided')
                 ->schema([]);
         }
-        $cities = City::get();
         $boxSizes = BoxSize::getBoxSizes()->map(function (BoxSize $boxSize) {
             $name = "{$boxSize->length}x{$boxSize->height}x{$boxSize->width}";
             return ['id' => $boxSize->id, 'name' => $name];
         })->pluck('name', 'id');
+
+        $schema = [
+            Select::make("supplies.{$args['fieldset_type']->value}.box_sizes")
+                ->columnSpan(12)
+                ->label(self::getTranslation('delivery_fields.box_sizes'))
+                ->multiple()
+                ->options($boxSizes)
+                ->reactive(),
+            self::getBoxSizeAmountField($boxSizes, $args),
+        ];
+        $additionalServices = AdditionalServicesFieldSet::get(
+            args: [
+                'supply_type' => $args['fieldset_type']
+            ]
+        );
+        if ($additionalServices){
+            $schema[] = $additionalServices;
+        }
         return Fieldset::make($name)
-            ->schema([
-                Select::make($args['box_sizes_field_name'])
-                    ->columnSpan(12)
-                    ->label(self::getTranslation('delivery_fields.box_sizes'))
-                    ->multiple()
-                    ->options($boxSizes)
-                    ->reactive(),
-                self::getBoxSizeAmountField($boxSizes, $args['box_sizes_field_name']),
-                MoscowBoxAdditionalServiceFieldSet::get()
-                    ->visible(
-                        fn (callable $get) =>
-                        $cities->where('id', $get('city_id'))->first()->classifier === CityClassifier::MOSCOW->value
-                        && in_array(SupplyType::BOX->name, $get('supply_type'))
-                        && $args['fieldset_type'] === SupplyType::BOX->name
-                    ),
-                KazanBoxAdditionalServiceFieldSet::get()
-                    ->visible(
-                        fn (callable $get) =>
-                            $cities->where('id', $get('city_id'))->first()->classifier === CityClassifier::KAZAN->value
-                            && in_array(SupplyType::BOX->name, $get('supply_type'))
-                            && $args['fieldset_type'] === SupplyType::BOX->name
-                    ),
-                MoscowBoxOnPalletAdditionalServiceFieldSet::get()
-                    ->visible(
-                        fn (callable $get) =>
-                            $cities->where('id', $get('city_id'))->first()->classifier === CityClassifier::MOSCOW->value
-                            && in_array(SupplyType::BOX_ON_PALLET->name, $get('supply_type'))
-                            && $args['fieldset_type'] === SupplyType::BOX_ON_PALLET->name
-                    ),
-                KazanBoxOnPalletAdditionalServiceFieldSet::get()
-                    ->visible(
-                        fn (callable $get) =>
-                            $cities->where('id', $get('city_id'))->first()->classifier === CityClassifier::KAZAN->value
-                            && in_array(SupplyType::BOX_ON_PALLET->name, $get('supply_type'))
-                            && $args['fieldset_type'] === SupplyType::BOX_ON_PALLET->name
-                    ),
-            ]);
+            ->schema($schema);
     }
 
-    private static function getBoxSizeAmountField($boxSizes, $fieldName): Group{
+    private static function getBoxSizeAmountField($boxSizes, $args): Group{
         $fields = [];
         foreach ($boxSizes as $id => $name){
-            $fields[] = TextInput::make($fieldName.'_'.$id)
+            $fields[] = TextInput::make("supplies.{$args['fieldset_type']->value}.box_amounts.{$id}")
                 ->label(self::getTranslation('amount').' '.$name)
-                ->visible(fn (callable $get) => in_array($id, $get($fieldName)))
+                ->visible(fn (callable $get) => in_array($id, $get("supplies.{$args['fieldset_type']->value}.box_sizes")))
                 ->columnSpan(12)
                 ->required();
         }

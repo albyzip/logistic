@@ -6,5 +6,5 @@ use Filament\Forms\Components\Fieldset;
 
 abstract class AbstractFieldset
 {
-    abstract public static function get(string $name = '', array $args = []): Fieldset;
+    abstract public static function get(string $name = '', array $args = []): ?Fieldset;
 }

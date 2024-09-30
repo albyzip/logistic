@@ -15,8 +15,6 @@ return new class extends Migration
     {
         Schema::create('deliveries', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(Warehouse::class,'from_warehouse_id')->nullable()->constrained('warehouses')->cascadeOnDelete();
-            $table->foreignIdFor(Warehouse::class, 'to_warehouse_id')->nullable()->constrained('warehouses')->cascadeOnDelete();
             $table->boolean('get_from_address')->default(false);
             $table->dateTime('unload_at')->nullable();
             $table->decimal('price', 10)->nullable();

@@ -22,6 +22,8 @@ return [
     'delivery_section_description' => 'Укажите данные поставки',
     'paletWeight' => 'Вес палеты',
     'paletWeights' => 'Веса палет',
+    'additionalService' => 'Дополнительная услуга',
+    'additionalServices' => 'Дополнительные услуги',
     'amount' => 'Количество',
     'delivery_fields' => [
         'city_id' => 'Город отправления',

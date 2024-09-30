@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Database\Eloquent\Model;
 
-class AuthService
+class AuthService extends AbstractService
 {
     /**
      * Добавить роль пользователю
